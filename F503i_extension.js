@@ -20,7 +20,7 @@ const LED_R = "f7fce51a-7a0b-4b89-a675-a79137223e2c";
 const CHAR_BUZZER = "f7fce521-7a0b-4b89-a675-a79137223e2c";
 const CHAR_BRIGHT = "f7fce532-7a0b-4b89-a675-a79137223e2c";
 
-console.log("f503iExtension","loaded");
+console.log("f503iExtension","loaded v2");
 
 (function(Scratch) {
 	class BLEExtension {
@@ -35,6 +35,7 @@ console.log("f503iExtension","loaded");
 			this.ledState = {_g:0,_y:0,_r:0};
 			this.buzzer = null;
 			this.brightness = null;
+			this.brightnessLock = false;
 		}
 
 		async connect() {
@@ -191,7 +192,7 @@ console.log("f503iExtension","loaded");
 					{
 						opcode: 'playBuzzer',
 						blockType: Scratch.BlockType.COMMAND,
-						text: 'ブザーを[SCALE]の音階で鳴らす',
+						text: 'ブザーを[SCALE]Hzで鳴らす',
 						func: 'fsPlayBuzzer',
 						arguments: {
 							SCALE: {
@@ -242,17 +243,21 @@ console.log("f503iExtension","loaded");
 
 		//明度センサー値取得
 		async fsGetBrightness() {
+			if (this.brightnessLock || this.blestates !== 1) {
+				return -1; // 他が読み取り中 or 未接続時
+			}
+
+			this.brightnessLock = true;
+
 			try{
-				if(this.blestates === 1){
-					const xVal = await this.brightness.readValue();
-					const n = new Uint8Array(xVal.buffer);
-					const xRes = (n[1] << 8) | n[0];
-					return xRes;
-				}else{
-					return -1;
-				}
-			} catch (error) {
+				const xVal = await this.brightness.readValue();
+				const n = new Uint8Array(xVal.buffer);
+				const xRes = (n[1] << 8) | n[0];
+				return xRes;
+			} catch (err) {
 				return -1;
+			}finally{
+				this.brightnessLock = false;
 			}
 		}
 
