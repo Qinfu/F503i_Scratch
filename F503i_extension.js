@@ -148,7 +148,7 @@ console.log("f503iExtension","loaded v2");
 					{
 						opcode: 'BLEStates',
 						blockType: Scratch.BlockType.REPORTER,
-						text: 'F503iが接続状況',
+						text: 'F503iの接続状況',
 						func: 'fsBleStates'
 					},
 					{
